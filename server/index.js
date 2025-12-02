@@ -2,36 +2,44 @@ const express = require("express");
 const dotenvFlow = require("dotenv-flow");
 const todoRoutes = require("./routes/todoRoutes");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const { baseRoot } = require("./controllers/todoController");
 
-// dotenv-flow is used to manage environment variables across different environments
+// Load environment variables
 dotenvFlow.config();
 
 const app = express();
 
-// allow requests from outside resources like postman, or your frontend if you choose to build that out
-app.use(cors());
+// CORS settings for Render + Vite frontend
+app.use(
+  cors({
+    origin: "*",              // allow all origins
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+  })
+);
 
-// app will serve and receive data in a JSON format
+// Parse JSON request body
 app.use(express.json());
 
-// the messenger between our app and our database
-const mongoose = require("mongoose");
-const { baseRoot } = require("./controllers/todoController");
-
-// establish connection & give yourself a message so you know when its complete
-const source = process.env.MONGODB_ATLAS_CONNECTION;
+// MongoDB connection
+const source = process.env.MONGODB_ATLAS_CONNECTION || process.env.MONGO_URI;
 
 mongoose
   .connect(source)
   .then(() => console.log("✅ DB Connected Successfully"))
-  .catch((error) => console.log(error));
+  .catch((error) => console.log("❌ DB Connection Error:", error));
 
+// Default route
 app.get("/", baseRoot);
 
+// API routes
 app.use("/api", todoRoutes);
 
+// Render-friendly PORT
 const PORT = process.env.PORT || 5000;
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
