@@ -4,23 +4,22 @@ const todoRoutes = require("./routes/todoRoutes");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const { baseRoot } = require("./controllers/todoController");
-const path = require("path");
 
 // Load environment variables
 dotenvFlow.config();
 
 const app = express();
 
-// CORS settings
+// CORS settings for Render + Vite frontend
 app.use(
   cors({
-    origin: "*",
+    origin: "*",              // allow all origins
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",
   })
 );
 
-// Parse JSON
+// Parse JSON request body
 app.use(express.json());
 
 // MongoDB connection
@@ -31,15 +30,11 @@ mongoose
   .then(() => console.log("✅ DB Connected Successfully"))
   .catch((error) => console.log("❌ DB Connection Error:", error));
 
-// API routes
+// Default route
 app.get("/", baseRoot);
-app.use("/api", todoRoutes);
 
-// Serve frontend static files (React + Vite build)
-app.use(express.static(path.join(__dirname, "../client/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-});
+// API routes
+app.use("/api", todoRoutes);
 
 // Render-friendly PORT
 const PORT = process.env.PORT || 5000;
